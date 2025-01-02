@@ -1,5 +1,5 @@
 streamlit
-sounddevice
+pyaudio
 numpy
 langchain_openai
 SpeechRecognition

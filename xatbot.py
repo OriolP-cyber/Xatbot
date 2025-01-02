@@ -1,8 +1,8 @@
 import streamlit as st
-import sounddevice as sd
+import pyaudio
+import wave
 import numpy as np
 import io
-import wave
 from langchain_openai import ChatOpenAI
 import speech_recognition as sr
 
@@ -23,14 +23,24 @@ for message in st.session_state.messages:
 # Funció gravar audio
 def record_audio(duration=5, samplerate=44100):
     st.write("Iniciando grabación...")
-    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=2, dtype='int16')
-    sd.wait()
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=pyaudio.paInt16, channels=2, rate=samplerate, input=True, frames_per_buffer=1024)
+    frames = []
+
+    for _ in range(0, int(samplerate / 1024 * duration)):
+        data = stream.read(1024)
+        frames.append(data)
+
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+
     audio_bytes = io.BytesIO()
     with wave.open(audio_bytes, 'wb') as wf:
         wf.setnchannels(2)
-        wf.setsampwidth(2)
+        wf.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
         wf.setframerate(samplerate)
-        wf.writeframes(audio_data.tobytes())
+        wf.writeframes(b''.join(frames))
     return audio_bytes.getvalue()
 
 # Funció transcriure audio
