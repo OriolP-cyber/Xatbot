@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key="OPENAI_API_KEY")
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=st.secrets["OPENAI_API_KEY"])
 
 st.title("💬 Xatbot Maria Rúbies 🤖")  
 
