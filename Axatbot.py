@@ -9,7 +9,7 @@ import speech_recognition as sr
 api_key = st.secrets["openai"]["api_key"]
 
 # Inicializar el modelo de lenguaje
-llm = ChatOpenAI(model="gpt-4", temperature=1, openai_api_key=api_key)
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, openai_api_key=api_key)
 
 st.title("💬 Xatbot Maria Rúbies 🤖")
 
