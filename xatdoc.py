@@ -37,6 +37,7 @@ def extract_text_from_docx(file):
     text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
     return text
 
+file_content = ""
 if uploaded_file is not None:
     if uploaded_file.type == "application/pdf":
         file_content = extract_text_from_pdf(uploaded_file)
@@ -57,6 +58,9 @@ if prompt := st.chat_input("Escriu el teu missatge..."):
     # Agregar mensaje del usuario al historial del chat
     st.session_state.messages.append({"role": "user", "content": prompt})
     messages.append({"role": "human", "content": prompt})
+
+    # Agregar el contenido del archivo al contexto del modelo
+    messages.append({"role": "system", "content": f"El contenido del documento es: {file_content}"})
 
     response = llm.invoke(messages).content
     # Mostrar la respuesta del asistente en el contenedor del mensaje del chat
