@@ -1,5 +1,5 @@
 streamlit
-streamlit-audio-recorder
-langchain_openai
-SpeechRecognition
+sounddevice
 numpy
+langchain-openai
+speechrecognition 
