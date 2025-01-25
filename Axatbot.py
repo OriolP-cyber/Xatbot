@@ -1,8 +1,8 @@
 import streamlit as st
-import io
+from streamlit_audio_recorder import st_audiorec  # Importamos el componente para grabar audio
 from langchain_openai import ChatOpenAI
 import speech_recognition as sr
-from streamlit_audio_recorder import st_audiorec  # Usando el componente streamlit-audio-recorder
+import io
 
 # Obtener la clave API desde los secretos de Streamlit
 api_key = st.secrets["openai"]["api_key"]
@@ -28,13 +28,14 @@ def transcribe_audio(audio_data):
         audio = recognizer.record(source)
     return recognizer.recognize_google(audio, language="ca-ES")
 
-# Lógica para grabar audio usando AudioRecorder
-audio_data = st_audiorec()
+# Lógica para grabar audio cuando se presiona el botón "Gravar audio"
+audio_data = st_audiorec()  # Usar el componente para grabar audio
 
 if audio_data:
-    st.write("🎙️ Grabación completada.")
+    st.write("🎤 Audio grabado!")
+    st.audio(audio_data)  # Reproducir el audio grabado
     
-    # Transcribir el audio
+    # Procesar el audio grabado
     text = transcribe_audio(audio_data)
     if text:
         st.write("**Tu:** ", text)
