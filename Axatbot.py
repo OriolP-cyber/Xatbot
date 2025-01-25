@@ -3,7 +3,7 @@ import sounddevice as sd
 import wave
 import numpy as np
 import io
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 import speech_recognition as sr
 
 # Obtener la clave API desde los secretos de Streamlit
