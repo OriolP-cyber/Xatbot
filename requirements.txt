@@ -1,5 +1,5 @@
 streamlit
-pyaudio
-wave
+streamlit-audio-recorder
 langchain_openai
 SpeechRecognition
+numpy
