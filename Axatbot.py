@@ -1,8 +1,9 @@
 import streamlit as st
-from streamlit_audio_recorder import st_audiorec  # Importamos el componente para grabar audio
-from langchain_openai import ChatOpenAI
-import speech_recognition as sr
+import wave
+import numpy as np
 import io
+import speech_recognition as sr
+from langchain_openai import ChatOpenAI
 
 # Obtener la clave API desde los secretos de Streamlit
 api_key = st.secrets["openai"]["api_key"]
@@ -21,6 +22,19 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# Función para grabar audio
+def record_audio(duration=5, samplerate=44100):
+    recognizer = sr.Recognizer()
+
+    # Usar el micrófono del sistema para grabar
+    with sr.Microphone() as source:
+        st.write("🎙️ Iniciando grabación... di algo después de unos segundos...")
+        audio = recognizer.listen(source, timeout=duration)  # Graba el audio
+
+    # Convertir los datos de audio a formato WAV para procesarlos
+    audio_data = audio.get_wav_data()
+    return audio_data
+
 # Función para transcribir audio
 def transcribe_audio(audio_data):
     recognizer = sr.Recognizer()
@@ -29,14 +43,13 @@ def transcribe_audio(audio_data):
     return recognizer.recognize_google(audio, language="ca-ES")
 
 # Lógica para grabar audio cuando se presiona el botón "Gravar audio"
-audio_data = st_audiorec()  # Usar el componente para grabar audio
+if st.button("Gravar audio"):
+    audio_data = record_audio()  # Iniciar la grabación
+    st.session_state.audio_data = audio_data  # Guardamos los datos grabados
 
-if audio_data:
-    st.write("🎤 Audio grabado!")
-    st.audio(audio_data)  # Reproducir el audio grabado
-    
-    # Procesar el audio grabado
-    text = transcribe_audio(audio_data)
+# Procesar audio grabado, si existe
+if st.session_state.get("audio_data"):
+    text = transcribe_audio(st.session_state.audio_data)
     if text:
         st.write("**Tu:** ", text)
         st.session_state.messages.append({"role": "user", "content": text})
