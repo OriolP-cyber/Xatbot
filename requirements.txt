@@ -3,4 +3,3 @@ sounddevice
 numpy
 langchain-openai
 speechrecognition 
-streamlit-audio-recorder
