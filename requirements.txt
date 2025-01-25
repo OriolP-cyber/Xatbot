@@ -1,7 +1,4 @@
 streamlit
-sounddevice
-numpy
 langchain-openai
-speechrecognition 
-requests
-streamlit_webrtc
+PyMuPDF
+python-docx
