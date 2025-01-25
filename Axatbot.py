@@ -1,12 +1,11 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
-import wave
-import io
+import requests
+import time
 from langchain_openai import ChatOpenAI
-import speech_recognition as sr
 
 # Obtener la clave API desde los secretos de Streamlit
 api_key = st.secrets["openai"]["api_key"]
+assemblyai_api_key = st.secrets["assemblyai"]["api_key"]
 
 # Inicializar el modelo de lenguaje
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, openai_api_key=api_key)
@@ -22,50 +21,79 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Definir un procesador de audio para Streamlit WebRTC
-class AudioProcessor(AudioProcessorBase):
-    def __init__(self):
-        self.audio_data = None
-
-    def recv(self, frame):
-        # Convertir el frame de WebRTC a formato WAV en memoria
-        self.audio_data = frame.to_ndarray()
-        return frame
-
-# Función para transcribir audio
+# Función para transcribir audio usando AssemblyAI
 def transcribe_audio(audio_data):
-    recognizer = sr.Recognizer()
-    with sr.AudioFile(io.BytesIO(audio_data)) as source:
-        audio = recognizer.record(source)
-    return recognizer.recognize_google(audio, language="ca-ES")
+    headers = {
+        "authorization": assemblyai_api_key,
+        "content-type": "application/json"
+    }
 
-# Iniciar la captura de audio desde el micrófono con Streamlit WebRTC
-def record_audio():
-    webrtc_streamer(
-        key="audio-stream",
-        mode=WebRtcMode.SENDRECV,
-        audio_processor_factory=AudioProcessor,
-        async_processing=True,
+    # Subir el archivo de audio
+    upload_response = requests.post(
+        "https://api.assemblyai.com/v2/upload",
+        headers=headers,
+        files={"file": audio_data}
     )
 
-# Lógica para grabar audio cuando se presiona el botón "Gravar audio"
-if st.button("Gravar audio"):
-    st.session_state.recording = True
-    st.session_state.audio_data = None  # Reiniciar datos de audio anteriores
+    if upload_response.status_code != 200:
+        st.write(f"Error al subir el archivo: {upload_response.json()}")
+        return None
 
-# Si se está grabando, iniciar la grabación
-if "recording" in st.session_state and st.session_state.recording:
-    record_audio()  # Iniciar la grabación con WebRTC
+    audio_url = upload_response.json().get("upload_url")
+    if not audio_url:
+        st.write("No se pudo obtener la URL del archivo subido.")
+        return None
 
-# Procesar audio grabado, si existe
-if st.session_state.get("audio_data"):
-    audio_data = st.session_state.audio_data
+    # Solicitar la transcripción
+    transcript_request = {
+        "audio_url": audio_url
+    }
+    transcript_response = requests.post(
+        "https://api.assemblyai.com/v2/transcript",
+        json=transcript_request,
+        headers=headers
+    )
+
+    if transcript_response.status_code != 200:
+        st.write(f"Error al solicitar la transcripción: {transcript_response.json()}")
+        return None
+
+    transcript_id = transcript_response.json().get("id")
+    if not transcript_id:
+        st.write("No se recibió un ID de transcripción.")
+        return None
+
+    # Esperar hasta que se complete la transcripción
+    while True:
+        transcript_result = requests.get(
+            f"https://api.assemblyai.com/v2/transcript/{transcript_id}",
+            headers=headers
+        )
+
+        if transcript_result.status_code != 200:
+            st.write(f"Error al obtener el resultado de la transcripción: {transcript_result.json()}")
+            return None
+
+        transcript_status = transcript_result.json().get("status")
+        if transcript_status == "completed":
+            return transcript_result.json().get("text")
+        elif transcript_status == "failed":
+            st.write("La transcripción ha fallado.")
+            return None
+
+        time.sleep(5)
+
+# Lógica para subir y procesar audio
+uploaded_file = st.file_uploader("Sube un archivo de audio", type=["wav", "mp3"])
+
+if uploaded_file is not None:
+    audio_data = uploaded_file.read()
     text = transcribe_audio(audio_data)
     if text:
         st.write("**Tu:** ", text)
         st.session_state.messages.append({"role": "user", "content": text})
         response = llm.predict_messages(st.session_state.messages).content
-        st.write("**Resposta del model:** ", response)
+        st.write("**Respuesta del modelo:** ", response)
         st.session_state.messages.append({"role": "assistant", "content": response})
 
 # Reactivar la entrada de texto
