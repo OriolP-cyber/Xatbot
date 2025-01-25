@@ -4,3 +4,4 @@ numpy
 langchain-openai
 speechrecognition 
 requests
+streamlit_webrtc
