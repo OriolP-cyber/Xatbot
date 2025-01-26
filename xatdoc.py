@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 import fitz  # PyMuPDF
 import docx
 
-# Obtener la clave API desde los secretos
+# Obtenir la clau API des dell secrets
 api_key = st.secrets["openai"]["api_key"]
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=api_key)
@@ -12,17 +12,17 @@ st.title("💬 Xatbot Maria Rúbies 🤖")
 
 messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom es Maria"}]
 
-# Inicializar historial del chat
+# Inicialitzar historial del xat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Mostrar mensajes del chat en el historial al cargar la app
+# Mostrar missatges del xat en el historial al carregar l'app
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Funcionalidad para subir documentos
-uploaded_file = st.file_uploader("Sube tu documento", type=["txt", "pdf", "docx"])
+# Funcionalitat per a pujar documents
+uploaded_file = st.file_uploader("Puja el teu document", type=["txt", "pdf", "docx"])
 
 def extract_text_from_pdf(file):
     pdf_document = fitz.open(stream=file, filetype="pdf")
@@ -46,25 +46,25 @@ if uploaded_file is not None:
     elif uploaded_file.type == "text/plain":
         file_content = uploaded_file.read().decode("utf-8")
     else:
-        file_content = "Tipo de archivo no soportado."
+        file_content = "Tipus d'arxiu no soportat."
 
-    st.write("Contenido del archivo subido:")
+    st.write("Contingut de l'arxiu pujat:")
     st.text(file_content)
 
-# Reaccionar a la entrada del usuario
+# Reaccionar a la entrada del usuari
 if prompt := st.chat_input("Escriu el teu missatge..."):
-    # Mostrar mensaje del usuario en el contenedor de mensajes del chat
+    # Mostrar missatge del usuari en el contenidor de missatges del xat
     st.chat_message("user").markdown(prompt)
-    # Agregar mensaje del usuario al historial del chat
+    # Afegir missatge del usuari al historial del xat
     st.session_state.messages.append({"role": "user", "content": prompt})
     messages.append({"role": "human", "content": prompt})
 
-    # Agregar el contenido del archivo al contexto del modelo
+    # Afegir el contingut del arxiu al context del model
     messages.append({"role": "system", "content": f"El contenido del documento es: {file_content}"})
     response = llm.invoke(messages).content
-    # Mostrar la respuesta del asistente en el contenedor del mensaje del chat
+    # Mostrar la resposta del assistent en el contenidor del missatge del xat
     with st.chat_message("assistant"):
         st.markdown(response)
-    # Agregar respuesta del asistente al historial del chat
+    # Afegir resposta del assistent al historial del xat
     st.session_state.messages.append({"role": "assistant", "content": response})
     st.session_state.messages.append({"role": "assistant", "content": response})
