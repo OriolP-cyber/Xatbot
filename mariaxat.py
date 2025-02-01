@@ -1,35 +1,36 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 
-# Obtenir la clau API des dels secrets
+# Obtener la clave API desde los secretos
 api_key = st.secrets["openai"]["api_key"]
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=api_key)
 
 st.title("💬 Xatbot Maria Rúbies 🤖")  
 
-messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom es Maria"}]
-
-# Inicialitzar historial del xat
+# Inicializar historial del chat en la sesión si no existe
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom és Maria"}]
 
-# Mostrar missatges del xat al historial al carregar la app
+# Mostrar mensajes previos en el chat
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Reaccionar la entrada del usuari
+# Entrada del usuario
 if prompt := st.chat_input("Escriu el teu missatge..."):
-    # Mostra missatge del usuari al contenidor de missatges del xat
+    # Mostrar mensaje del usuario en el chat
     st.chat_message("user").markdown(prompt)
-    # Agregar missatge del usuari al historial del xat
+    
+    # Agregar mensaje del usuario al historial
     st.session_state.messages.append({"role": "user", "content": prompt})
-    messages.append({"role": "human", "content": prompt})
 
-    response = llm.invoke(messages).content
-    # Mostra la resposta del assistent en el contenidor del missatge del xat
+    # Usar todo el historial en la consulta al modelo
+    response = llm.invoke(st.session_state.messages).content
+
+    # Mostrar respuesta del asistente en el chat
     with st.chat_message("assistant"):
         st.markdown(response)
-    # Afegir resposta del assistent al historial del xat
+
+    # Agregar respuesta del asistente al historial
     st.session_state.messages.append({"role": "assistant", "content": response})
