@@ -1,36 +1,35 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 
-# Obtener la clave API desde los secretos
+# Obtenir la clau API des dels secrets
 api_key = st.secrets["openai"]["api_key"]
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=api_key)
 
 st.title("💬 Xatbot Maria Rúbies 🤖")  
 
-# Inicializar historial del chat en la sesión si no existe
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom és Maria"}]
+messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom es Maria"}]
 
-# Mostrar mensajes previos en el chat
+# Inicialitzar historial del xat
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Mostrar missatges del xat al historial al carregar la app
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Entrada del usuario
+# Reaccionar la entrada del usuari
 if prompt := st.chat_input("Escriu el teu missatge..."):
-    # Mostrar mensaje del usuario en el chat
+    # Mostra missatge del usuari al contenidor de missatges del xat
     st.chat_message("user").markdown(prompt)
-    
-    # Agregar mensaje del usuario al historial
+    # Agregar missatge del usuari al historial del xat
     st.session_state.messages.append({"role": "user", "content": prompt})
+    messages.append({"role": "human", "content": prompt})
 
-    # Usar todo el historial en la consulta al modelo
-    response = llm.invoke(st.session_state.messages).content
-
-    # Mostrar respuesta del asistente en el chat
+    response = llm.invoke(messages).content
+    # Mostra la resposta del assistent en el contenidor del missatge del xat
     with st.chat_message("assistant"):
         st.markdown(response)
-
-    # Agregar respuesta del asistente al historial
+    # Afegir resposta del assistent al historial del xat
     st.session_state.messages.append({"role": "assistant", "content": response})
