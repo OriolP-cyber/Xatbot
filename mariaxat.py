@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 
-# Obtenir la clau API des dels secrets
+# Obtener la clave API desde los secretos
 api_key = st.secrets["openai"]["api_key"]
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key=api_key)
@@ -10,26 +10,27 @@ st.title("💬 Xatbot Maria Rúbies 🤖")
 
 messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom es Maria"}]
 
-# Inicialitzar historial del xat
+# Inicializar historial del chat
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = messages
 
-# Mostrar missatges del xat al historial al carregar la app
+# Mostrar mensajes del chat en el historial al cargar la app
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Reaccionar la entrada del usuari
+# Reaccionar a la entrada del usuario
 if prompt := st.chat_input("Escriu el teu missatge..."):
-    # Mostra missatge del usuari al contenidor de missatges del xat
+    # Mostrar mensaje del usuario en el contenedor de mensajes del chat
     st.chat_message("user").markdown(prompt)
-    # Agregar missatge del usuari al historial del xat
+    # Agregar mensaje del usuario al historial del chat
     st.session_state.messages.append({"role": "user", "content": prompt})
-    messages.append({"role": "human", "content": prompt})
+    messages.append({"role": "user", "content": prompt})
 
     response = llm.invoke(messages).content
-    # Mostra la resposta del assistent en el contenidor del missatge del xat
+    # Mostrar la respuesta del asistente en el contenedor del mensaje del chat
     with st.chat_message("assistant"):
         st.markdown(response)
-    # Afegir resposta del assistent al historial del xat
+    # Agregar respuesta del asistente al historial del chat
     st.session_state.messages.append({"role": "assistant", "content": response})
+    messages.append({"role": "assistant", "content": response})
