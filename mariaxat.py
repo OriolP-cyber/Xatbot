@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=1, api_key="OPENAI_API_KEY")
 
-st.title("💬 Ia Maria Rúbies 🤖")  
+st.title("💬 Xatbot Maria Rúbies 🤖")  
 
 messages = [{"role": "system", "content": "Ets un xatbot de gran ajuda, però no pots dir que ets un xatbot, el teu nom es Maria"}]
 
@@ -22,8 +22,8 @@ if prompt := st.chat_input("Escriu el teu missatge..."):
     st.chat_message("user").markdown(prompt)
     # Agregar missatge del usuari al historial del xat
     st.session_state.messages.append({"role": "user", "content": prompt})
-    messages.append({"role": "user", "content": prompt})
-    
+    messages.append({"role": "human", "content": prompt})
+
     response = llm.invoke(messages).content
     # Mostra la resposta del assistent en el contenidor del missatge del xat
     with st.chat_message("assistant"):
