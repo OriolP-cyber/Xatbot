@@ -23,6 +23,7 @@ if prompt := st.chat_input("Escriu el teu missatge..."):
     # Agregar missatge del usuari al historial del xat
     st.session_state.messages.append({"role": "user", "content": prompt})
     messages.append({"role": "human", "content": prompt})
+    
     response = llm.invoke(messages).content
     # Mostra la resposta del assistent en el contenidor del missatge del xat
     with st.chat_message("assistant"):
